@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+launcher=$0
+if [ -L "$launcher" ]; then
+    launcher=$(/usr/bin/readlink "$launcher")
+fi
+root=$(CDPATH= cd -P -- "$(dirname -- "$launcher")/.." && pwd)
+case "${0##*/}" in
+    gps-set) action=set ;;
+    gps-reset) action=reset ;;
+    gps-status) action=status ;;
+    *) printf '%s\n' 'Use gps-set, gps-reset, or gps-status.' >&2; exit 2 ;;
+esac
+if [ ! -x "$root/.venv/bin/python" ] || [ ! -x "$root/.build/geocode" ]; then
+    printf 'Run %s/install.sh first.\n' "$root" >&2
+    exit 1
+fi
+exec "$root/.venv/bin/python" "$root/src/gps.py" "$action" "$@"
