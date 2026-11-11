@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#0f2a3d"/>
+    </linearGradient>
+    <linearGradient id="pin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6b5e"/><stop offset="1" stop-color="#e0352b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#2aa5ff" stop-opacity="0.45"/><stop offset="1" stop-color="#2aa5ff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="screen"><rect x="905" y="86" width="226" height="468" rx="30"/></clipPath>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <g stroke="#ffffff" stroke-opacity="0.05" stroke-width="1">
+    <path d="M0 80H1280M0 160H1280M0 240H1280M0 320H1280M0 400H1280M0 480H1280M0 560H1280"/>
+    <path d="M80 0V640M160 0V640M240 0V640M320 0V640M400 0V640M480 0V640M560 0V640M640 0V640M720 0V640M800 0V640M880 0V640M960 0V640M1040 0V640M1120 0V640M1200 0V640"/>
+  </g>
+  <circle cx="1018" cy="320" r="330" fill="url(#glow)"/>
+  <g font-family="-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif">
+    <text x="80" y="150" font-size="26" font-weight="600" fill="#5cc8ff" letter-spacing="3">macOS  ·  USB  ·  iOS 17.4+</text>
+    <text x="80" y="238" font-size="84" font-weight="800" fill="#ffffff">iPhone USB GPS</text>
+    <text x="80" y="300" font-size="34" font-weight="500" fill="#c9d6e2">Set a fake iPhone location from your Mac.</text>
+    <text x="80" y="346" font-size="34" font-weight="500" fill="#c9d6e2">No jailbreak. No sudo. No app on the phone.</text>
+  </g>
+  <g>
+    <rect x="80" y="400" width="720" height="168" rx="16" fill="#060b14" stroke="#ffffff" stroke-opacity="0.12"/>
+    <circle cx="108" cy="428" r="7" fill="#ff5f57"/><circle cx="132" cy="428" r="7" fill="#febc2e"/><circle cx="156" cy="428" r="7" fill="#28c840"/>
+    <g font-family="'SF Mono',Menlo,Consolas,monospace" font-size="26">
+      <text x="108" y="482" fill="#5cc8ff">$ <tspan fill="#ffffff">gps-set "Tokyo"</tspan></text>
+      <text x="108" y="520" fill="#5cc8ff">$ <tspan fill="#ffffff">gps-set -- "-33.8688,151.2093"</tspan></text>
+      <text x="108" y="558" fill="#5cc8ff">$ <tspan fill="#ffffff">gps-reset</tspan></text>
+    </g>
+  </g>
+  <g>
+    <rect x="893" y="74" width="250" height="492" rx="42" fill="#05080f" stroke="#7d8da0" stroke-width="3"/>
+    <rect x="905" y="86" width="226" height="468" rx="30" fill="#dfeaf2"/>
+    <g clip-path="url(#screen)">
+      <path d="M905 200C960 230 1010 180 1070 215S1110 260 1131 250V120H905Z" fill="#bcd9ee"/>
+      <path d="M905 330H1131M905 440H1131M960 86V554M1060 86V554" stroke="#ffffff" stroke-width="12"/>
+      <path d="M905 395L1131 300" stroke="#f6d77a" stroke-width="10"/>
+      <circle cx="1018" cy="352" r="46" fill="#2a7fff" fill-opacity="0.18"/>
+      <circle cx="1018" cy="352" r="13" fill="#2a7fff" stroke="#fff" stroke-width="4"/>
+    </g>
+    <rect x="978" y="94" width="80" height="22" rx="11" fill="#05080f"/>
+    <path d="M1018 300c-21 0-36 15-36 34 0 26 36 62 36 62s36-36 36-62c0-19-15-34-36-34z" transform="translate(0,-86)" fill="url(#pin)"/>
+    <circle cx="1018" cy="248" r="13" fill="#fff" transform="translate(0,-0)" opacity="0"/>
+    <circle cx="1018" cy="248" r="0"/>
+  </g>
+  <g transform="translate(0,-86)"><circle cx="1018" cy="334" r="13" fill="#fff"/></g>
+  <g font-family="-apple-system,Arial,sans-serif" font-size="22" font-weight="600" fill="#8fa3b8">
+    <text x="1200" y="610" text-anchor="end">github.com/sicaboy/iphone-usb-gps</text>
+  </g>
+</svg>
