@@ -36,7 +36,7 @@ REQUEST_TIMEOUT = 25
 
 def error_text(exc):
     if isinstance(exc, PasswordRequiredError):
-        return "iPhone 处于锁定状态，请解锁后重试。"
+        return "The iPhone is locked. Unlock it and try again."
     return str(exc) or type(exc).__name__
 
 
@@ -69,10 +69,10 @@ async def device_info(device):
     ) as lockdown:
         values = lockdown.all_values
         return {
-            "name": values.get("DeviceName", "Apple 设备"),
-            "model": values.get("ProductType", "未知"),
+            "name": values.get("DeviceName", "Apple device"),
+            "model": values.get("ProductType", "unknown"),
             "ios": lockdown.product_version,
-            "build": values.get("BuildVersion", "未知"),
+            "build": values.get("BuildVersion", "unknown"),
             "paired": lockdown.paired,
             "developer": await lockdown.get_developer_mode_status() if lockdown.paired else None,
         }
@@ -83,17 +83,17 @@ async def target(serial=None):
     if serial:
         devices = [device for device in devices if device.matches_udid(serial)]
     if not devices:
-        raise RuntimeError("请用 USB 重新连接并解锁目标 iPhone。")
+        raise RuntimeError("Reconnect the target iPhone by USB and unlock it.")
     if len(devices) != 1:
-        raise RuntimeError("连接了多个 USB 设备，请只保留目标 iPhone。")
+        raise RuntimeError("Multiple USB devices are connected. Leave only the target iPhone connected.")
     device = devices[0]
     info = await device_info(device)
     if not info["paired"]:
-        raise RuntimeError("请解锁 iPhone，在 Finder 选中设备并确认手机上的「信任此电脑」。")
+        raise RuntimeError("Unlock the iPhone, select it in Finder, and confirm Trust This Computer on the iPhone.")
     if not info["model"].startswith("iPhone") or Version(info["ios"]) < Version("17.4"):
-        raise RuntimeError("此工具使用 iPhone（iOS 17.4+）的 USB 用户态 RSD 连接。")
+        raise RuntimeError("This tool requires an iPhone running iOS 17.4 or later over USB.")
     if not info["developer"]:
-        raise RuntimeError("请在 iPhone 设置 → 隐私与安全性 → 开发者模式开启，重启后解锁并确认。")
+        raise RuntimeError("Enable Developer Mode in iPhone Settings > Privacy & Security, then restart, unlock, and confirm.")
     return device.serial
 
 
@@ -102,15 +102,15 @@ async def location_session(serial):
     async with AsyncExitStack() as stack:
         rsd = await stack.enter_async_context(PreferredRsdTunnel(serial=serial, autopair=False))
         if rsd.udid.replace("-", "") != serial.replace("-", ""):
-            raise RuntimeError("RSD 返回的设备与 USB 目标不一致。")
+            raise RuntimeError("The RSD device does not match the USB target.")
         async with PersonalizedImageMounter(lockdown=rsd) as mounter:
             mounted = await mounter.is_image_mounted(mounter.IMAGE_TYPE)
         if not mounted:
-            logging.info("准备 Developer Disk Image")
+            logging.info("Preparing the Developer Disk Image")
             try:
                 await auto_mount(rsd)
             except AlreadyMountedError:
-                logging.info("Developer Disk Image 已存在")
+                logging.info("Developer Disk Image already installed")
             # Refresh the service list using the existing tunnel's dialer.
             rsd = await stack.enter_async_context(RemoteServiceDiscoveryService(
                 rsd.service.address, open_connection=rsd.open_connection
@@ -122,21 +122,21 @@ async def location_session(serial):
 
 def coordinates(lat, lon):
     if not (math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180):
-        raise ValueError("纬度须在 −90 到 90 之间，经度须在 −180 到 180 之间。")
+        raise ValueError("Latitude must be between -90 and 90. Longitude must be between -180 and 180.")
     return [lat, lon]
 
 
 def resolve(query):
     query = query.strip().replace("，", ",")
     if not query:
-        raise ValueError("请输入地名或纬度,经度。")
+        raise ValueError("Enter a place name or latitude,longitude.")
     parts = query.split(",")
     if len(parts) == 2:
         try:
             lat, lon = map(float, parts)
         except ValueError:
             if re.fullmatch(r"[\d\s+.,eE-]+", query):
-                raise ValueError("坐标格式应为 纬度,经度。") from None
+                raise ValueError("Enter coordinates as latitude,longitude.") from None
         else:
             return coordinates(lat, lon), None
     try:
@@ -144,7 +144,7 @@ def resolve(query):
             [GEOCODER, query], check=True, capture_output=True, text=True, timeout=25
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
-        raise RuntimeError(f"Apple Maps 无法解析「{query}」，请改用更具体的地名或坐标。") from exc
+        raise RuntimeError(f"Apple Maps could not resolve '{query}'. Try a more specific place name or coordinates.") from exc
     place = json.loads(result.stdout)
     return coordinates(place["lat"], place["lon"]), place["name"]
 
@@ -178,7 +178,7 @@ async def serve(serial, first_point):
                         request = json.loads(await reader.readline())
                         async with lifecycle:
                             if stop.is_set():
-                                raise RuntimeError("会话正在关闭。")
+                                raise RuntimeError("The session is closing.")
                             command = request["command"]
                             if command == "set":
                                 try:
@@ -193,7 +193,7 @@ async def serve(serial, first_point):
                                 finally:
                                     stop.set()
                             elif command != "status":
-                                raise ValueError("未知会话命令。")
+                                raise ValueError("Unknown session command.")
                             reply = {"ok": True, "pid": os.getpid(), "target": journal().get("target")}
                 except Exception as exc:
                     logging.exception("Session request failed")
@@ -226,7 +226,7 @@ async def serve(serial, first_point):
     try:
         done, _ = await asyncio.wait([task, ready], timeout=STARTUP_TIMEOUT, return_when=asyncio.FIRST_COMPLETED)
         if not done:
-            raise TimeoutError("准备开发者服务超时。")
+            raise TimeoutError("Timed out preparing developer services.")
         await task
     finally:
         ready.cancel()
@@ -243,7 +243,7 @@ def rpc(command, **kwargs):
         with client.makefile("rb") as stream:
             line = stream.readline()
     if not line:
-        raise RuntimeError("会话连接已关闭。")
+        raise RuntimeError("The session connection has closed.")
     reply = json.loads(line)
     if not reply["ok"]:
         raise RuntimeError(reply["error"])
@@ -268,28 +268,28 @@ def start(serial, point):
     while time.monotonic() < deadline:
         if child.poll() is not None:
             lines = LOG.read_text(errors="replace").splitlines()
-            detail = lines[-1] if lines else "会话进程已退出"
-            raise RuntimeError(f"{detail}\n日志：{STATE / LOG}")
+            detail = lines[-1] if lines else "The session process exited."
+            raise RuntimeError(f"{detail}\nLog: {STATE / LOG}")
         if SOCKET.exists():
             try:
                 return rpc("status")
             except (ConnectionRefusedError, FileNotFoundError):
                 pass
         if not announced and time.monotonic() - started > 3:
-            print(f"正在准备 RSD/DVT，首次可能需下载开发者镜像。日志 {STATE / LOG}", flush=True)
+            print(f"Preparing RSD/DVT. First use may download a Developer Disk Image. Log: {STATE / LOG}", flush=True)
             announced = True
         time.sleep(0.2)
-    raise TimeoutError(f"等待会话就绪超时。日志 {STATE / LOG}")
+    raise TimeoutError(f"Timed out waiting for the session to start. Log: {STATE / LOG}")
 
 
 def set_location(query):
     point, label = resolve(query)
     serial = asyncio.run(asyncio.wait_for(target(journal().get("serial")), 10))
     reply = rpc("set", target=point) if worker_running() else start(serial, point)
-    print(f"DVT 已回应设置请求，目标 {point[0]}, {point[1]}，会话 PID {reply['pid']}。")
+    print(f"DVT acknowledged the request for {point[0]}, {point[1]}. Session PID: {reply['pid']}.")
     if label:
-        print(f"Apple Maps 地点匹配：{label}")
-    print("请在 iPhone 的 Apple Maps 查看蓝点确认。")
+        print(f"Apple Maps match: {label}")
+    print("Check the blue dot in Apple Maps on the iPhone to confirm.")
 
 
 async def clear_reconnected(serial):
@@ -301,7 +301,7 @@ async def clear_reconnected(serial):
 def reset():
     saved = journal()
     if not saved and not worker_running():
-        print("没有待清除的本工具会话。")
+        print("No GPS simulation session to clear.")
         return
     cleared = False
     if worker_running():
@@ -309,36 +309,39 @@ def reset():
             rpc("reset")
             cleared = True
         except (OSError, RuntimeError) as exc:
-            print(f"原会话清除未完成：{error_text(exc)}", file=sys.stderr)
+            print(f"Could not clear the existing session: {error_text(exc)}", file=sys.stderr)
         deadline = time.monotonic() + 15
         while worker_running() and time.monotonic() < deadline:
             time.sleep(0.1)
         if worker_running():
-            raise RuntimeError(f"会话仍在关闭或准备中，请稍后重试 gps-reset。日志 {STATE / LOG}")
+            raise RuntimeError(f"The session is still closing or starting. Retry gps-reset shortly. Log: {STATE / LOG}")
     if not cleared:
         saved = journal()
         if not saved:
-            print("没有待清除的本工具会话。")
+            print("No GPS simulation session to clear.")
             return
         asyncio.run(asyncio.wait_for(clear_reconnected(saved["serial"]), 60))
     JOURNAL.unlink(missing_ok=True)
     SOCKET.unlink(missing_ok=True)
-    print("已发送 DVT 清除请求，本工具会话已关闭。请在 Apple Maps 确认蓝点恢复。")
+    print("DVT clear request sent. GPS simulation session closed. Check the blue dot in Apple Maps to confirm.")
 
 
 async def show_devices():
     devices = await asyncio.wait_for(usb_devices(), 5)
     if not devices:
-        print("USB 设备：无")
+        print("USB devices: none")
     for device in devices:
         try:
             info = await asyncio.wait_for(device_info(device), 5)
         except Exception as exc:
-            print(f"USB 设备已检测到，详情读取失败：{error_text(exc)}")
+            print(f"USB device detected. Could not read details: {error_text(exc)}")
             continue
-        developer = {True: "开启", False: "关闭", None: "未知"}[info["developer"]]
-        trust = "已配对" if info["paired"] else "需要信任"
-        print(f"USB：{info['name']}（{info['model']}），iOS {info['ios']} ({info['build']})，{trust}，开发者模式{developer}")
+        developer = {True: "enabled", False: "disabled", None: "unknown"}[info["developer"]]
+        trust = "paired" if info["paired"] else "trust required"
+        print(
+            f"USB: {info['name']} ({info['model']}), iOS {info['ios']} ({info['build']}), "
+            f"{trust}, Developer Mode {developer}"
+        )
 
 
 def status():
@@ -348,19 +351,19 @@ def status():
         try:
             reply = rpc("status")
         except (OSError, RuntimeError):
-            print("会话：正在准备、关闭或连接异常")
+            print("Session: starting, closing, or unreachable")
         else:
-            print(f"会话：DVT 连接运行中，PID {reply['pid']}")
+            print(f"Session: DVT connected, PID {reply['pid']}")
     elif saved:
-        print("会话：已断开，PID 无。可重连同一部 iPhone 后运行 gps-reset。")
+        print("Session: disconnected, no PID. Reconnect the same iPhone and run gps-reset to clear it.")
     else:
-        print("会话：未运行，PID 无")
+        print("Session: inactive, no PID")
     if saved:
         lat, lon = saved["target"]
-        request = "DVT 已回应" if saved["acknowledged"] else "设置结果未知"
-        print(f"目标：{lat}, {lon}（{request}。手机定位请以 Apple Maps 蓝点为准。）")
+        request = "DVT acknowledged" if saved["acknowledged"] else "request outcome unknown"
+        print(f"Target: {lat}, {lon} ({request}). Check the blue dot in Apple Maps to confirm.")
     if LOG.exists():
-        print(f"日志：{STATE / LOG}")
+        print(f"Log: {STATE / LOG}")
 
 
 def main():
@@ -378,9 +381,14 @@ def main():
                 logging.error("%s: %s", type(exc).__name__, error_text(exc))
                 return 1
         return 0
-    parser = argparse.ArgumentParser(prog=f"gps-{command}")
+    descriptions = {
+        "set": "Set or change the simulated iPhone location.",
+        "reset": "Clear the simulated iPhone location and close the session.",
+        "status": "Show USB devices and GPS simulation session status.",
+    }
+    parser = argparse.ArgumentParser(prog=f"gps-{command}", description=descriptions[command])
     if command == "set":
-        parser.add_argument("location", help="地名或十进制纬度,经度")
+        parser.add_argument("location", help="Place name or decimal latitude,longitude.")
         if arguments and re.match(r"^-(?:\d|\.\d)", arguments[0]):
             arguments.insert(0, "--")
     options = parser.parse_args(arguments)

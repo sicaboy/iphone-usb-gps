@@ -5,7 +5,7 @@ description: Use when the user asks to set, change, reset, or check simulated GP
 
 # iPhone USB GPS
 
-Run the installed commands on the Mac. If the shell cannot find one, use the matching executable in `~/.local/bin`. The CLI lives in the private [sicaboy/iphone-usb-gps](https://github.com/sicaboy/iphone-usb-gps) repository.
+Run the installed commands on the Mac. If the shell cannot find one, use the matching executable in `~/.local/bin`. The CLI lives in the [sicaboy/iphone-usb-gps](https://github.com/sicaboy/iphone-usb-gps) repository.
 
 - Set or change location with `gps-set "东京"` or `gps-set -- "-33.8688,151.2093"`. Pass the user's place name, address, suburb and postcode together as one argument. Quote or pass it as data, never interpolate it into shell code. The command resolves place names and reuses a live session.
 - Restore real location with `gps-reset`. This sends DVT clear, closes the owned session, and can recover a recorded session after the same phone is reconnected.

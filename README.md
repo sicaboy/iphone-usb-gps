@@ -1,41 +1,53 @@
 # iPhone USB GPS
 
-从 macOS 通过 USB 调用 iPhone 的 DVT LocationSimulation。支持坐标和 Apple Maps 地名搜索。会话按需启动，连续设置复用现有 DVT 连接。iPhone 断开后保留目标记录，供重连同一台设备时清除。
+[![Open source license: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE) · [简体中文](README.zh-CN.md)
 
-## 安装
+Set a simulated iPhone location from a Mac over USB using DVT LocationSimulation. Enter latitude and longitude directly or search for a place with Apple Maps. Each new location reuses the live DVT session. If the phone disconnects, the tool keeps a local record so you can clear the simulation after reconnecting the same device.
 
-需要 macOS 26 或更新版本、Xcode Command Line Tools 和 uv。项目锁定 Python 3.14 和 pymobiledevice3 11.51.0。连接逻辑面向 iOS 17.4+，已在 iOS 27.2 上测试 DVT 请求和设备定位服务日志。
+## Install
+
+You need macOS 26 or later, the Xcode Command Line Tools, and uv. The project uses Python 3.14 and pins [pymobiledevice3](https://github.com/doronz88/pymobiledevice3) to 11.51.0. The USB connection targets iOS 17.4 or later. DVT requests and device location logs were checked on iOS 27.2.
 
 ```sh
-gh repo clone sicaboy/iphone-usb-gps
+git clone https://github.com/sicaboy/iphone-usb-gps.git
 cd iphone-usb-gps
 ./install.sh
 ```
 
-安装会在检出目录创建虚拟环境和 Apple Maps 地名搜索程序，并把命令链接到 `~/.local/bin`。确保该目录在 PATH。使用 `GPS_BIN_DIR=/absolute/path ./install.sh` 可指定其他目录。保留检出目录供已安装的命令使用。
+The installer creates a virtual environment and builds the Apple Maps search helper in the checkout. It links the commands into `~/.local/bin`. Add that directory to your PATH and keep the checkout in place. To use a different command directory, run `GPS_BIN_DIR=/absolute/path ./install.sh`.
 
-## 使用
+## Use
 
-把 iPhone 通过 USB 连接到 Mac，解锁后在手机上确认信任。首次使用时，在设置 → 隐私与安全性开启开发者模式，重启、解锁并确认开启。
+1. Connect the iPhone by USB, unlock it, and confirm the trust prompt if shown.
+2. On first use, enable Developer Mode in Settings → Privacy & Security. Restart, unlock the phone, and confirm that Developer Mode should be enabled.
+3. Run a command below and use the location arrow in Apple Maps on the iPhone to check the blue dot.
 
-如果开发者模式开关未显示，只连接目标 iPhone，解锁后从仓库目录运行下列命令，然后重新打开设置页面。
+```sh
+gps-status
+gps-set "Melbourne VIC, Australia"
+gps-set "Tokyo"
+gps-set -- "-33.8688,151.2093"
+gps-reset
+```
+
+- `gps-set` sets a place or decimal coordinates in latitude, longitude order. Place queries go to Apple Maps. Coordinate input skips that lookup. Add a region, postal code, or country to distinguish similarly named places.
+- `gps-status` reports the USB device, Developer Mode, session PID, and target. A DVT reply confirms the request. The blue dot confirms what Apple Maps displays.
+- `gps-reset` sends a DVT clear request and closes the session. After a disconnect, reconnect and unlock the same iPhone before running it.
+
+The first DVT connection may download a developer disk image and install it on the device after Apple signs it. The tool opens a userspace RSD/RemoteXPC tunnel on demand. It requires neither sudo nor a permanent service. Session state and logs are stored in `~/Library/Application Support/iphone-usb-gps/`.
+
+### If the Developer Mode toggle is missing
+
+Connect only the target iPhone, unlock it, and run this command from the checkout. Then reopen Settings → Privacy & Security on the phone.
 
 ```sh
 .venv/bin/pymobiledevice3 amfi reveal-developer-mode
 ```
 
-```sh
-gps-status
-gps-set "Melbourne VIC, Australia"
-gps-set "东京"
-gps-set -- "-33.8688,151.2093"
-gps-reset
-```
-
-地名查询会发给 Apple Maps。纯坐标输入跳过地名查询。重名地点可加上州、邮编或国家。首次使用 DVT 时，工具可能需要下载开发者镜像，并通过 Apple 签名后安装到设备。连接使用进程内用户态 RSD/RemoteXPC，无需 sudo 或常驻服务。
-
-DVT 回应和会话存活只表示请求及连接状态。请在 iPhone 的 Apple Maps 点定位箭头，通过蓝点确认设置或恢复效果。断线后，保持同一台 iPhone 通过 USB 连接并解锁，再运行 `gps-reset` 清除遗留状态。运行状态和日志保存在 `~/Library/Application Support/iphone-usb-gps/`。
-
 ## Codex Skill
 
-把 `skills/iphone-usb-gps` 复制到 `~/.codex/skills/`，然后在新对话中说「定位到纽约」「查看 iPhone 定位状态」或「恢复真实定位」。Skill 使用上面的命令。
+Copy `skills/iphone-usb-gps` into `~/.codex/skills/`. In a new chat, ask to set the iPhone location to New York, check the iPhone GPS session, or restore its real location. The Skill calls the same commands.
+
+## License
+
+This project is available under [GPL-3.0-or-later](LICENSE).

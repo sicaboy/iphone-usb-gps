@@ -2,6 +2,7 @@
 name = "iphone-usb-gps"
 version = "0.1.0"
 description = "Control iPhone developer location simulation over USB from macOS."
+license = "GPL-3.0-or-later"
 requires-python = ">=3.14,<3.15"
 dependencies = [
     "packaging>=24",
