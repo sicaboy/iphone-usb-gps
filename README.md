@@ -1,5 +1,7 @@
 # iPhone USB GPS
 
+![iPhone USB GPS: set a fake iPhone location from a Mac over USB with gps-set](docs/images/social-preview.png)
+
 [![Open source license: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg)](LICENSE) · [简体中文](README.zh-CN.md)
 
 Set a simulated iPhone location from a Mac over USB using DVT LocationSimulation. Enter latitude and longitude directly or search for a place with Apple Maps. Each new location reuses the live DVT session. If the phone disconnects, the tool keeps a local record so you can clear the simulation after reconnecting the same device.
@@ -43,6 +45,26 @@ Connect only the target iPhone, unlock it, and run this command from the checkou
 ```sh
 .venv/bin/pymobiledevice3 amfi reveal-developer-mode
 ```
+
+## FAQ
+
+### How do I fake or change my iPhone's GPS location from a Mac?
+Connect the iPhone by USB, enable Developer Mode, then run `gps-set "Tokyo"` or `gps-set -- "-33.8688,151.2093"`. See [Use](#use).
+
+### Does it need a jailbreak, sudo or an app on the iPhone?
+No. It uses DVT LocationSimulation through an on-demand userspace RSD/RemoteXPC tunnel, with no sudo and no permanent service.
+
+### Which iOS and macOS versions are supported?
+macOS 26 or later with the Xcode Command Line Tools and uv. The USB connection targets iOS 17.4 or later. DVT requests were checked on iOS 27.2.
+
+### How do I go back to my real location?
+Run `gps-reset`. It sends a DVT clear request and closes the session. After a disconnect, reconnect and unlock the same iPhone first.
+
+### The Developer Mode toggle is missing. What now?
+Connect only the target iPhone, unlock it, and run `.venv/bin/pymobiledevice3 amfi reveal-developer-mode` from the checkout. See [If the Developer Mode toggle is missing](#if-the-developer-mode-toggle-is-missing).
+
+### How do I confirm the location changed?
+Open Apple Maps on the iPhone and tap the location arrow. The blue dot shows what Apple Maps displays; a DVT reply only confirms the request.
 
 ## Codex Skill
 
